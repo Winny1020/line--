@@ -69,6 +69,7 @@ async function handleEvent(event) {
 
   const userId = event.source.userId;
   const text = event.message.text.trim();
+  console.log(`收到訊息 [${userId}]: ${text}`);
 
   if (["說明", "help", "幫助"].includes(text.toLowerCase())) {
     return client.replyMessage(event.replyToken, { type: "text", text: HELP_TEXT });
