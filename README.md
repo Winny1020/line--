@@ -2,6 +2,13 @@
 
 在 LINE 聊天室輸入一句話就能記帳，資料自動寫入 Google Sheets。
 
+## 目前正式環境
+
+- **LINE 官方帳號**：Winny 記帳小幫手（`@844nkred`）
+- **正式伺服器**：Render 雲端部署，網址 `https://line-winny-line-bot.onrender.com`
+- **程式碼倉庫**：https://github.com/Winny1020/line--（`main` 分支推送後 Render 會自動重新部署）
+- **方案**：Render Free 方案 — 閒置一段時間會自動休眠，下次收到訊息時可能延遲最多 50 秒才回覆屬正常現象；若需要秒回可考慮升級付費方案（$7/月起）
+
 ## 使用方式（設定完成後）
 
 ```
@@ -9,10 +16,12 @@
 60 早餐          → 效果同上，項目與金額順序不拘
 加油 300 #交通   → 手動指定分類
 +5000 薪水       → 記一筆收入
-統計 / 本月       → 查詢本月各分類支出與總計
+本週 / 本月 / 本季 / 本年 → 查詢對應區間的分類支出與收支總計
 刪除             → 刪除自己最後一筆紀錄
 說明             → 顯示使用說明
 ```
+
+多筆記帳可在同一則訊息裡換行輸入，機器人會逐行各自記錄一筆。
 
 ---
 
@@ -25,8 +34,8 @@
 5. 進入該 Channel，切到 **Messaging API** 分頁：
    - 找到 **Channel access token**，按「Issue」產生，複製起來（對應 `.env` 的 `LINE_CHANNEL_ACCESS_TOKEN`）。
    - 切到 **Basic settings** 分頁，複製 **Channel secret**（對應 `.env` 的 `LINE_CHANNEL_SECRET`）。
-6. 回到 Messaging API 分頁，把 **Webhook 用のURL** 填入之後 ngrok 提供的網址（例如 `https://xxxx.ngrok-free.app/webhook`），並開啟 **Use webhook**。
-7. 建議關閉「自動回應訊息」「加入好友的歡迎訊息」等預設功能（在 LINE Official Account Manager 後台，https://manager.line.biz/ 設定），避免跟機器人自己的回覆衝突。
+6. 把 **Webhook URL** 填入正式環境網址：`https://line-winny-line-bot.onrender.com/webhook`，並開啟 **Use webhook**。
+7. 到 LINE Official Account Manager 後台（https://manager.line.biz/）的「回應設定」，把「聊天」關閉、「Webhook」開啟，避免內建自動回應攔截訊息。
 8. 用手機掃描 Channel 頁面上的 QR Code，把這個機器人加為好友，之後就能在聊天室裡跟它對話。
 
 ## 二、建立 Google 服務帳戶並授權 Google Sheet
@@ -42,35 +51,42 @@
 7. 把這個 Google Sheet **共用給服務帳戶信箱**（就是 `client_email`），權限給「編輯者」。這一步很重要，沒有共用機器人會沒有權限寫入。
 8. `.env` 的 `GOOGLE_SHEET_NAME` 預設是「記帳」，可改成你想要的工作表分頁名稱（若該分頁不存在請先在 Sheet 裡新增同名分頁）。
 
-## 三、安裝與本機啟動
+## 三、部署到 Render（正式環境）
+
+1. 把專案程式碼推送到 GitHub（目前是 `Winny1020/line--`）。
+2. 到 [Render Dashboard](https://dashboard.render.com/) 用 GitHub 帳號登入，點 **New +** → **Web Service**。
+3. 選擇 **Build and deploy from a Git repository**，連接並選取這個 repo。
+4. 設定：
+   - **Branch**：`main`
+   - **Build Command**：`npm install`
+   - **Start Command**：`npm start`
+   - **Instance Type**：Free
+5. **Environment Variables** 區塊點 **Add from .env**，選擇本機的 `.env` 檔案，一次匯入六組變數（`LINE_CHANNEL_ACCESS_TOKEN`、`LINE_CHANNEL_SECRET`、`GOOGLE_SERVICE_ACCOUNT_EMAIL`、`GOOGLE_PRIVATE_KEY`、`GOOGLE_SHEET_ID`、`GOOGLE_SHEET_NAME`）。
+6. 點 **Deploy Web Service**，等部署完成後會拿到一個 `https://xxxx.onrender.com` 網址。
+7. 回到 LINE 後台把 Webhook URL 換成這個網址加上 `/webhook`。
+
+之後每次 `git push` 到 `main` 分支，Render 會自動重新部署。
+
+## 四、（選用）本機開發與除錯
+
+想在本機修改程式並測試，可以用 ngrok 暫時對外提供服務，不影響 Render 上的正式環境（只要別把 LINE 的 Webhook URL 切回 ngrok 網址即可）：
 
 ```bash
 cd line-記帳機器人
 npm install
 cp .env.example .env
-# 打開 .env 填入上面取得的四項金鑰/ID
+# 打開 .env 填入六項金鑰/ID
 npm start
 ```
 
-啟動後應該會看到 `伺服器已啟動，監聽埠號 3000`。
+另開一個終端機視窗：
+```bash
+ngrok http 3000
+```
 
-## 四、用 ngrok 讓 LINE 連得到本機
+複製 ngrok 顯示的網址，若要暫時用它測試，記得測試完要把 LINE 後台的 Webhook URL 改回 Render 的正式網址。
 
-1. 安裝 ngrok（`brew install ngrok` 或到官網下載），並用 `ngrok config add-authtoken <你的token>` 設定好帳號（免費註冊 https://ngrok.com/ 取得 token）。
-2. 開一個新的終端機視窗，執行：
-   ```bash
-   ngrok http 3000
-   ```
-3. 複製 ngrok 顯示的 `https://xxxx.ngrok-free.app` 網址。
-4. 回到 LINE Developers Console 的 Messaging API 分頁，把 Webhook URL 設成 `https://xxxx.ngrok-free.app/webhook`，按「Verify」確認能連通（應顯示 Success）。
-
-   > 注意：ngrok 免費版每次重啟網址都會變，改了之後要記得回 LINE 後台更新 Webhook URL。
-
-5. 用手機打開跟機器人的聊天室，輸入 `午餐 120` 測試，應該會收到「✅ 已記錄 支出：餐飲 - 午餐 120 元」的回覆，同時 Google Sheet 會多一列資料。
-
-## 之後要長期使用怎麼辦？
-
-本機測試沒問題後，建議部署到 Render / Railway / Google Cloud Run 等平台常駐運作（不用一直開著電腦跟 ngrok），把同樣的環境變數設定上去、Webhook URL 換成正式網址即可。有需要的話可以再請我協助設定部署。
+> ngrok 免費版每次重啟網址都會變動，僅適合臨時除錯，不建議長期依賴。
 
 ## 檔案結構
 
@@ -79,7 +95,8 @@ line-記帳機器人/
 ├── index.js          # Express 伺服器與 LINE webhook 處理
 ├── lib/
 │   ├── parser.js      # 解析訊息文字（金額、項目、分類）
-│   └── sheets.js      # Google Sheets 讀寫（記帳、查詢、刪除）
+│   └── sheets.js      # Google Sheets 讀寫（記帳、查詢、統計、刪除）
 ├── .env.example       # 環境變數範本
+├── SPEC.md            # 完整規格書
 └── package.json
 ```

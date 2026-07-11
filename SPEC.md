@@ -147,9 +147,9 @@ LINE 使用者
    │  傳送文字訊息
    ▼
 LINE Messaging API（Winny 記帳小幫手 Channel）
-   │  Webhook (HTTPS POST)
+   │  Webhook (HTTPS POST) → https://line-winny-line-bot.onrender.com/webhook
    ▼
-ngrok 通道（本機開發用，正式環境可換成雲端網址）
+Render Web Service（Free 方案，24 小時常駐，閒置後會休眠）
    │
    ▼
 Express 伺服器（index.js，port 3000）
@@ -163,15 +163,19 @@ Google Sheets API
 使用者的 Google Sheet（記帳資料庫）
 ```
 
+正式環境部署在 Render，程式碼庫為 GitHub `Winny1020/line--`（`main` 分支），推送新 commit 會觸發 Render 自動重新部署。本機開發時可另外用 ngrok 暫時對外提供服務，僅供除錯，不影響正式環境（見 README「四、本機開發與除錯」）。
+
 ## 7. 外部服務與憑證
 
 | 服務 | 用途 | 對應環境變數 |
 |---|---|---|
 | LINE Messaging API | 接收使用者訊息、回覆訊息 | `LINE_CHANNEL_ACCESS_TOKEN`、`LINE_CHANNEL_SECRET` |
 | Google Sheets API | 讀寫記帳資料 | `GOOGLE_SERVICE_ACCOUNT_EMAIL`、`GOOGLE_PRIVATE_KEY`、`GOOGLE_SHEET_ID`、`GOOGLE_SHEET_NAME` |
+| Render | 正式環境託管（Web Service，Free 方案） | 於 Render Dashboard 的 Environment Variables 設定，內容與 `.env` 相同 |
+| GitHub | 程式碼版本控制、觸發 Render 自動部署 | 無（透過 SSH 金鑰推送） |
 
 - Google 端採用服務帳戶（Service Account）驗證，需將目標 Google Sheet 共用給該服務帳戶 email 並給予「編輯者」權限
-- 所有憑證存放於專案根目錄的 `.env`（已被 `.gitignore` 排除，不會進版控）
+- 本機開發用的憑證存放於專案根目錄的 `.env`（已被 `.gitignore` 排除，不會進版控）；正式環境的同一組憑證另外設定在 Render 的 Environment Variables
 
 ## 8. 技術棧
 
@@ -182,7 +186,8 @@ Google Sheets API
 | LINE SDK | `@line/bot-sdk` |
 | Google API 用戶端 | `googleapis`、`google-auth-library` |
 | 環境變數管理 | `dotenv` |
-| 本機對外穿透 | ngrok |
+| 正式環境託管 | Render（Free Web Service，隨 GitHub `main` 分支自動部署） |
+| 本機對外穿透（僅開發用） | ngrok |
 
 ## 9. 專案檔案結構
 
@@ -205,11 +210,11 @@ line-記帳機器人/
 - 目前僅支援單一使用者情境下的「刪除最後一筆」，不支援刪除任意歷史紀錄或批次刪除
 - 每次記帳或查詢都會讀取整份 Google Sheet 做記憶體運算，資料量極大時（數萬列以上）效能會下降
 - 分類學習僅採「多數決」，不會理解語意相近但用詞不同的項目（例如「拿鐵」與「咖啡」視為不同項目）
-- 本機開發用 ngrok 網址為浮動網址，每次重啟需回 LINE 後台更新 Webhook URL；正式使用建議部署到常駐雲端服務
+- Render Free 方案閒置一段時間會自動休眠，休眠後第一則訊息可能延遲最多 50 秒才回覆；需要秒回須升級付費方案
 
 ## 11. 未來可能擴充方向（尚未實作）
 
-- 部署到 Render／Railway／Cloud Run 等平台，取得固定網址
+- 升級 Render 付費方案避免休眠延遲
 - 支援上傳收據照片並用 OCR／多模態模型辨識金額與品項
 - 支援預算設定與超支提醒
 - 支援指定任意一筆紀錄修改或刪除（而非僅限最後一筆）
