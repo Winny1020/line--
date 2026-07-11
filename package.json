@@ -1,0 +1,19 @@
+{
+  "name": "line-expense-bot",
+  "version": "1.0.0",
+  "private": true,
+  "description": "LINE 記帳機器人，將訊息解析為記帳資料並寫入 Google Sheets",
+  "main": "index.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js"
+  },
+  "dependencies": {
+    "@line/bot-sdk": "^9.4.1",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "google-auth-library": "^9.11.0",
+    "googleapis": "^140.0.1"
+  }
+}
