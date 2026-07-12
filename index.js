@@ -83,7 +83,7 @@ async function handleEvent(event) {
   if (["刪除", "刪除上一筆", "undo"].includes(text.toLowerCase())) {
     const deleted = await deleteLastExpense(userId);
     const reply = deleted
-      ? `🗑️ 已刪除：${deleted[2]} - ${deleted[3]} ${deleted[4]} 元`
+      ? `🗑️ 已刪除：${deleted[3]} - ${deleted[4]} ${deleted[5]} 元`
       : "找不到可刪除的紀錄";
     return client.replyMessage(event.replyToken, { type: "text", text: reply });
   }
