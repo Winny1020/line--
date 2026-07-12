@@ -149,7 +149,7 @@ LINE 使用者
 LINE Messaging API（Winny 記帳小幫手 Channel）
    │  Webhook (HTTPS POST) → https://line-winny-line-bot.onrender.com/webhook
    ▼
-Render Web Service（Free 方案，24 小時常駐，閒置後會休眠）
+Render Web Service（Starter 方案，24 小時常駐，不會休眠）
    │
    ▼
 Express 伺服器（index.js，port 3000）
@@ -171,7 +171,7 @@ Google Sheets API
 |---|---|---|
 | LINE Messaging API | 接收使用者訊息、回覆訊息 | `LINE_CHANNEL_ACCESS_TOKEN`、`LINE_CHANNEL_SECRET` |
 | Google Sheets API | 讀寫記帳資料 | `GOOGLE_SERVICE_ACCOUNT_EMAIL`、`GOOGLE_PRIVATE_KEY`、`GOOGLE_SHEET_ID`、`GOOGLE_SHEET_NAME` |
-| Render | 正式環境託管（Web Service，Free 方案） | 於 Render Dashboard 的 Environment Variables 設定，內容與 `.env` 相同 |
+| Render | 正式環境託管（Web Service，Starter 方案，US$7/月） | 於 Render Dashboard 的 Environment Variables 設定，內容與 `.env` 相同 |
 | GitHub | 程式碼版本控制、觸發 Render 自動部署 | 無（透過 SSH 金鑰推送） |
 
 - Google 端採用服務帳戶（Service Account）驗證，需將目標 Google Sheet 共用給該服務帳戶 email 並給予「編輯者」權限
@@ -186,7 +186,7 @@ Google Sheets API
 | LINE SDK | `@line/bot-sdk` |
 | Google API 用戶端 | `googleapis`、`google-auth-library` |
 | 環境變數管理 | `dotenv` |
-| 正式環境託管 | Render（Free Web Service，隨 GitHub `main` 分支自動部署） |
+| 正式環境託管 | Render（Starter Web Service，隨 GitHub `main` 分支自動部署） |
 | 本機對外穿透（僅開發用） | ngrok |
 
 ## 9. 專案檔案結構
@@ -210,11 +210,10 @@ line-記帳機器人/
 - 目前僅支援單一使用者情境下的「刪除最後一筆」，不支援刪除任意歷史紀錄或批次刪除
 - 每次記帳或查詢都會讀取整份 Google Sheet 做記憶體運算，資料量極大時（數萬列以上）效能會下降
 - 分類學習僅採「多數決」，不會理解語意相近但用詞不同的項目（例如「拿鐵」與「咖啡」視為不同項目）
-- Render Free 方案閒置一段時間會自動休眠，休眠後第一則訊息可能延遲最多 50 秒才回覆；需要秒回須升級付費方案
+
+> 曾實測過 Render Free 方案：閒置後會休眠，LINE Webhook 的逾時通常短於 Render 冷啟動所需時間，休眠期間傳入的訊息可能直接遺失且事後無法補救（LINE 不提供事後查詢對話紀錄的 API）。曾嘗試用 cron-job.org 定時 ping 保持喚醒，但實測仍不夠穩定（懷疑被 Render 前端 Cloudflare 判定為機器人流量攔截）。最終改為升級 Render 至 Starter 方案（US$7/月，24 小時常駐）徹底解決。
 
 ## 11. 未來可能擴充方向（尚未實作）
-
-- 升級 Render 付費方案避免休眠延遲
 - 支援上傳收據照片並用 OCR／多模態模型辨識金額與品項
 - 支援預算設定與超支提醒
 - 支援指定任意一筆紀錄修改或刪除（而非僅限最後一筆）

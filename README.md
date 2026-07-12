@@ -7,7 +7,7 @@
 - **LINE 官方帳號**：Winny 記帳小幫手（`@844nkred`）
 - **正式伺服器**：Render 雲端部署，網址 `https://line-winny-line-bot.onrender.com`
 - **程式碼倉庫**：https://github.com/Winny1020/line--（`main` 分支推送後 Render 會自動重新部署）
-- **方案**：Render Free 方案 — 閒置一段時間會自動休眠，下次收到訊息時可能延遲最多 50 秒才回覆屬正常現象；若需要秒回可考慮升級付費方案（$7/月起）
+- **方案**：Render Starter（US$7/月）— 24 小時常駐，不會休眠，訊息即時處理不會遺失
 
 ## 使用方式（設定完成後）
 
@@ -60,7 +60,7 @@
    - **Branch**：`main`
    - **Build Command**：`npm install`
    - **Start Command**：`npm start`
-   - **Instance Type**：Free
+   - **Instance Type**：Starter（US$7/月，24 小時常駐不休眠；若想省錢也可先選 Free，但免費方案閒置後會休眠，LINE Webhook 逾時較短，休眠期間傳來的訊息可能直接遺失且無法事後補救）
 5. **Environment Variables** 區塊點 **Add from .env**，選擇本機的 `.env` 檔案，一次匯入六組變數（`LINE_CHANNEL_ACCESS_TOKEN`、`LINE_CHANNEL_SECRET`、`GOOGLE_SERVICE_ACCOUNT_EMAIL`、`GOOGLE_PRIVATE_KEY`、`GOOGLE_SHEET_ID`、`GOOGLE_SHEET_NAME`）。
 6. 點 **Deploy Web Service**，等部署完成後會拿到一個 `https://xxxx.onrender.com` 網址。
 7. 回到 LINE 後台把 Webhook URL 換成這個網址加上 `/webhook`。
