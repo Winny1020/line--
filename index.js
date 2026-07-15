@@ -21,6 +21,10 @@ const PERIOD_COMMANDS = {
   今年: "year",
 };
 
+const USER_DISPLAY_NAMES = {
+  Ueb93fe2cef0f9043136d290de595dd75: "Winny",
+};
+
 const lineConfig = {
   channelAccessToken: process.env.LINE_CHANNEL_ACCESS_TOKEN,
   channelSecret: process.env.LINE_CHANNEL_SECRET,
@@ -68,20 +72,21 @@ async function handleEvent(event) {
   }
 
   const userId = event.source.userId;
+  const accountId = USER_DISPLAY_NAMES[userId] || userId;
   const text = event.message.text.trim();
-  console.log(`收到訊息 [${userId}]: ${text}`);
+  console.log(`收到訊息 [${accountId}]: ${text}`);
 
   if (["說明", "help", "幫助"].includes(text.toLowerCase())) {
     return client.replyMessage(event.replyToken, { type: "text", text: HELP_TEXT });
   }
 
   if (PERIOD_COMMANDS[text]) {
-    const result = await getSummary(userId, PERIOD_COMMANDS[text]);
+    const result = await getSummary(accountId, PERIOD_COMMANDS[text]);
     return client.replyMessage(event.replyToken, { type: "text", text: formatSummary(result) });
   }
 
   if (["刪除", "刪除上一筆", "undo"].includes(text.toLowerCase())) {
-    const deleted = await deleteLastExpense(userId);
+    const deleted = await deleteLastExpense(accountId);
     const reply = deleted
       ? `🗑️ 已刪除：${deleted[3]} - ${deleted[4]} ${deleted[5]} 元`
       : "找不到可刪除的紀錄";
@@ -92,13 +97,13 @@ async function handleEvent(event) {
   const recorded = [];
   const unrecognized = [];
 
-  const history = await getItemCategoryHistory(userId);
+  const history = await getItemCategoryHistory(accountId);
   const resolveCategory = (item) => history.get(item.trim().toLowerCase()) || guessCategory(item);
 
   for (const line of lines) {
     const parsed = parseExpenseMessage(line, resolveCategory);
     if (parsed) {
-      await appendExpense({ ...parsed, userId });
+      await appendExpense({ ...parsed, userId: accountId });
       recorded.push(parsed);
     } else {
       unrecognized.push(line);
