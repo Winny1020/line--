@@ -119,7 +119,8 @@ async function handleEvent(event) {
 
   const replyLines = recorded.map((parsed) => {
     const emoji = parsed.type === "收入" ? "💰" : "✅";
-    return `${emoji} ${parsed.type}：${parsed.category} - ${parsed.item} ${parsed.amount.toLocaleString()} 元`;
+    const dateNote = parsed.recordedAt ? `（補記 ${parsed.recordedAt.slice(0, 10)}）` : "";
+    return `${emoji} ${parsed.type}：${parsed.category} - ${parsed.item} ${parsed.amount.toLocaleString()} 元${dateNote}`;
   });
   if (unrecognized.length > 0) {
     replyLines.push("", `⚠️ 看不懂以下 ${unrecognized.length} 行，未記錄：`, ...unrecognized);
